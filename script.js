@@ -107,11 +107,11 @@ async function updateForecastsInfo(city) {
 
     const dateMap = new Map();
 
-    // Group forecasts by date
+    
     forecastsData.list.forEach(forecast => {
         const [date, time] = forecast.dt_txt.split(' ');
 
-        if (date === todayDate) return; // Skip today
+        if (date === todayDate) return; 
 
         if (!dateMap.has(date)) {
             dateMap.set(date, []);
@@ -120,14 +120,14 @@ async function updateForecastsInfo(city) {
         dateMap.get(date).push({ forecast, time });
     });
 
-    // Pick best time (closest to 12:00:00) for each day
+    
     const targetTime = "12:00:00";
     let count = 0;
 
     for (let [date, entries] of dateMap.entries()) {
         if (count >= 5) break;
 
-        // Sort entries by closeness to 12:00:00
+        
         entries.sort((a, b) => {
             const t1 = Math.abs(parseInt(a.time.split(':')[0]) - 12);
             const t2 = Math.abs(parseInt(b.time.split(':')[0]) - 12);
