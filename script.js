@@ -39,7 +39,7 @@ async function getFetchData(endPoint, city) {
         return await response.json();
     } catch (err) {
         console.error("Fetch failed: ", err);
-        return { cod: 500 }; // simulate server error
+        return { cod: 500 }; 
     }
 }
 
@@ -99,24 +99,46 @@ async function updateWeatherInfo(city)
     showDisplaySection(weatherinfoSection)
 }
 
-async function updateForecastsInfo(city){
-    const forecastsData = await getFetchData('forecast', city)
-    const timeTaken = "12:00:00"
-    const todayDate = new Date().toISOString().split('T')[0]
+async function updateForecastsInfo(city) {
+    const forecastsData = await getFetchData('forecast', city);
+    const todayDate = new Date().toISOString().split('T')[0];
 
-    forecastItemContainer.innerHTML = ''
-    forecastsData.list.forEach(forecastWeather => {
-        if(forecastWeather.dt_txt.includes(timeTaken) &&
-         !forecastWeather.dt_txt.includes(todayDate)){
-        
-            updateForecastItems(forecastWeather)
+    forecastItemContainer.innerHTML = '';
+
+    const dateMap = new Map();
+
+    // Group forecasts by date
+    forecastsData.list.forEach(forecast => {
+        const [date, time] = forecast.dt_txt.split(' ');
+
+        if (date === todayDate) return; // Skip today
+
+        if (!dateMap.has(date)) {
+            dateMap.set(date, []);
         }
-    })
 
+        dateMap.get(date).push({ forecast, time });
+    });
 
-    // console.log(todayDate)
-    // console.log(forecastsData)
+    // Pick best time (closest to 12:00:00) for each day
+    const targetTime = "12:00:00";
+    let count = 0;
+
+    for (let [date, entries] of dateMap.entries()) {
+        if (count >= 5) break;
+
+        // Sort entries by closeness to 12:00:00
+        entries.sort((a, b) => {
+            const t1 = Math.abs(parseInt(a.time.split(':')[0]) - 12);
+            const t2 = Math.abs(parseInt(b.time.split(':')[0]) - 12);
+            return t1 - t2;
+        });
+
+        updateForecastItems(entries[0].forecast);
+        count++;
+    }
 }
+
 function updateForecastItems(weatherData){
    
     const {
